@@ -1,25 +1,31 @@
 ﻿using LoupedeckKritaApiClient;
 using LoupedeckKritaApiClient.ClientBase;
-using LoupedeckKritaApiClient.FiltersDialogs;
 
 namespace Loupedeck.KritaPlugin.DynamicFolders
 {
     public abstract class FilterDialogBase : PluginDynamicFolder
     {
-        private Client Client => ((KritaApplication)Plugin.ClientApplication).Client;
-        private FilterDialogDefinition filterDialogDefinition;
-        internal FilterDialog Dialog { get; private set; }
+        protected Client Client => ((KritaApplication)Plugin.ClientApplication).Client;
+        protected FilterDialogDefinition filterDialogDefinition;
+        internal LoupedeckKritaApiClient.FiltersDialogs.FilterDialogBase Dialog { get; set; }
 
         private const string ShowDialog = "Show dialog";
 
         private const string Cancel = "Cancel";
         private const string Validate = "OK";
 
-        internal FilterDialogBase(FilterDialogDefinition filterDefinition)
+        internal FilterDialogBase(string filterName)
         {
-            DisplayName = filterDefinition.Name;
+            filterDialogDefinition = FilterDialogDefinitionsList.FilterDialogDefintionList[filterName];
+            DisplayName = filterDialogDefinition.Name;
             GroupName = ActionGroups.Filters;
-            filterDialogDefinition = filterDefinition;
+        }
+
+        internal FilterDialogBase()
+        {
+            DisplayName = "Filter Layer Properties";
+            GroupName = ActionGroups.Filters;
+            filterDialogDefinition = null;
         }
 
         public override PluginDynamicFolderNavigation GetNavigationArea(DeviceType _)
@@ -31,7 +37,7 @@ namespace Loupedeck.KritaPlugin.DynamicFolders
         {
             ResetDialog();
 
-            Dialog = Filter.GetFilterDialog(Client, filterDialogDefinition.FilterType).Result;
+            Dialog = FilterDialog.GetFilterDialog(Client, filterDialogDefinition.FilterName).Result;
 
             return true;
         }
@@ -42,7 +48,7 @@ namespace Loupedeck.KritaPlugin.DynamicFolders
             return true;
         }
 
-        private void ResetDialog()
+        protected void ResetDialog()
         {
             if (Dialog != null)
             {
